@@ -35,6 +35,7 @@ import java.util.Random;
 public class GalleryMinigameActivity extends AppCompatActivity {
     //GalleryMinigameActivity.GalleryAdapter galleryAdapter;
     Drawable lost_piece;
+    Bitmap image;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,153 +48,21 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         else {
             try {
                 File f = new File(image_path);
-                Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
+                image = BitmapFactory.decodeStream(new FileInputStream(f));
                 loadGame(image);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
-        //---------------------------------------------------------------------------------------------------------------------------
-        //find blank part
-        TableLayout table = findViewById(R.id.table);
-        int x=0,y=0;
-        ImageView blankView = null;
-        for(y=0;y<3;y++){
-            TableRow row = (TableRow) table.getChildAt(y);
-            for(x=0;x<3;x++){
-                blankView = (ImageView) row.getChildAt(x);
-                if(blankView.getTag().equals("blank")){
-                    break;
-                }
-            }
-            if(blankView.getTag().equals("blank")){
-                break;
-            }
-        }
 
 
-        Random shuffle_random = new Random();
-        int old_direction = -10;
-        int shuffle_direction; //0=up,1=down,2=left,3=right
-        for(int i=0;i<30;i++) {
-            do {
-                shuffle_direction = shuffle_random.nextInt(4); //0=up,1=down,2=left,3=right
-            } while(old_direction+shuffle_direction==1 || old_direction+shuffle_direction==5);
-            old_direction = shuffle(shuffle_direction,x,y);
-        }
+
     }
-
-    public ArrayList<String> loadGallery() {
-
-        Uri uri;
-        Cursor cursor;
-        int column_index_data, column_index_folder_name;
-
-        String absolutePathOfImage = null;
-        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
-        //set query
-        final String orderBy = MediaStore.Images.Media.DATE_TAKEN;
-        cursor = getApplicationContext().getContentResolver().query(uri, projection, null, null, orderBy + " DESC");
-
-        //set variable to get query data
-        column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-        column_index_folder_name = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
-
-        //query(get image path)
-        ArrayList<String> imagePath = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            absolutePathOfImage = cursor.getString(column_index_data);
-            imagePath.add(absolutePathOfImage);
-        }
-        cursor.close();
-        return imagePath;
-    }
-    /*
-    public void setGalleryAdapter(boolean state){
-        GridView gridView = findViewById(R.id.galleryView);
-        ViewGroup root = findViewById(R.id.minigame_root_layout);
-        if(state){
-            //remove other layouts
-            while(root.getChildCount()>2){
-                root.removeViewAt(2);
-            }
-            //set adapter
-            galleryAdapter = new GalleryMinigameActivity.GalleryAdapter(getApplicationContext(),loadGallery());
-            gridView.setAdapter(galleryAdapter);
-        }
-        else{
-            gridView.setAdapter(null);
-        }
-    }
-    */
-    /*
-    public class GalleryAdapter extends BaseAdapter {
-        private Context context;
-        private ArrayList<String> imagePath;
-        GalleryAdapter(Context context,ArrayList<String> imagePath){
-            this.context = context;
-            this.imagePath = imagePath;
-        }
-
-        public int getCount() {
-            return imagePath.size();
-        }
-        public Object getItem(int position) {
-            return imagePath.get(position);
-        }
-        public long getItemId(int position) {
-            return position;
-        }
-        public View getView(int position, View convertView, ViewGroup parent) {
-            try {
-                //read image from image path string
-                File f = new File((String) getItem(position));
-                Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
-                //set image
-                ImageView imageView = new ImageView(getApplicationContext());
-                imageView.setImageBitmap(image);
-                //set parameter of imageView
-                DisplayMetrics displayMetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                int width = displayMetrics.widthPixels;
-                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, width /3));
-
-                //set image onclick listener, show image int big size
-                imageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //set new image layout
-                        ImageView imageView = new ImageView(getApplicationContext());
-                        ViewGroup root = findViewById(R.id.root_layout);
-                        imageView.setImageDrawable(((ImageView)view).getDrawable());
-                        //root.addView(imageView);
-                        //set backgroud to not show other view in backgroud
-                        imageView.setBackgroundColor(0xFFFFFFFF);
-
-                        setGalleryAdapter(false);
-
-                        Bitmap image = (Bitmap) ((BitmapDrawable) ((ImageView) view).getDrawable()).getBitmap();
-                        loadGame(image);
-                        imageView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                setGalleryAdapter(true);
-                            }
-                        });
-                    }
-                });
-                return imageView;
-            }catch (FileNotFoundException e){
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-    */
 
     public void loadGame(Bitmap image){
+        ViewGroup root = findViewById(R.id.minigame_root_layout);
+        while(root.getChildCount()>1)
+            root.removeViewAt(1);
         //divide to 3X3 image
         Bitmap[][] puzzles = new Bitmap[3][3];
         int width = image.getWidth()/3, height = image.getHeight()/3;
@@ -201,6 +70,8 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         TableRow row = findViewById(R.id.row1);
         for(int j=0;j<3;j++){
             row = (TableRow) tableLayout.getChildAt(j);
+            if(row.getChildCount()>0)
+                row.removeAllViews();
             for(int i=0;i<3;i++){
                 puzzles[i][j] = Bitmap.createBitmap(image,i*width,j*height,width,height);
                 ImageView imageView = new ImageView(getApplicationContext());
@@ -228,8 +99,9 @@ public class GalleryMinigameActivity extends AppCompatActivity {
                 setOnClickMove(i,j,imageView);
             }
         }
-    }
 
+        shuffle();
+    }
     public void setOnClickMove(int i,int j,ImageView view){
         //set direction
         final boolean up,down,left,right;
@@ -279,25 +151,53 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         });
 
     }
-    public int shuffle(int shuffle_direction,int x,int y){
+    public void shuffle(){
+        //find blank part
         TableLayout table = findViewById(R.id.table);
-        if(shuffle_direction == 0 && y>0) {
-            ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y - 1)).getChildAt(x);
-            imageView.performClick();
+        int x=0,y=0;
+        ImageView blankView = null;
+        for(y=0;y<3;y++){
+            TableRow row = (TableRow) table.getChildAt(y);
+            for(x=0;x<3;x++){
+                blankView = (ImageView) row.getChildAt(x);
+                if(blankView.getTag().equals("blank")){
+                    break;
+                }
+            }
+            if(blankView.getTag().equals("blank")){
+                break;
+            }
         }
-        else if(shuffle_direction == 1 && y<2){
-            ImageView imageView = (ImageView)((TableRow)table.getChildAt(y+1)).getChildAt(x);
-            imageView.performClick();
+        Random shuffle_random = new Random();
+        int old_direction = -10;
+        int shuffle_direction=5; //0=up,1=down,2=left,3=right
+        for(int i=0;i<30;i++) {
+            do {
+                shuffle_direction = shuffle_random.nextInt(4); //0=up,1=down,2=left,3=right
+            }
+            while (old_direction + shuffle_direction == 1 || old_direction + shuffle_direction == 5);
+            if (shuffle_direction == 0 && y > 0) {
+                ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y - 1)).getChildAt(x);
+                imageView.performClick();
+                y--;
+            } else if (shuffle_direction == 1 && y < 2) {
+                ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y + 1)).getChildAt(x);
+                imageView.performClick();
+                y++;
+            } else if (shuffle_direction == 2 && x > 0) {
+                ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y)).getChildAt(x - 1);
+                imageView.performClick();
+                x--;
+            } else if (shuffle_direction == 3 && x < 2) {
+                ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y)).getChildAt(x + 1);
+                imageView.performClick();
+                x++;
+            }
+            else {
+                i--;
+                continue;
+            }
         }
-        else if(shuffle_direction == 2 && x>0){
-            ImageView imageView = (ImageView)((TableRow)table.getChildAt(y)).getChildAt(x-1);
-            imageView.performClick();
-        }
-        else if(shuffle_direction == 3 && x<2){
-            ImageView imageView = (ImageView)((TableRow)table.getChildAt(y)).getChildAt(x+1);
-            imageView.performClick();
-        }
-        return shuffle_direction;
     }
     public void swap(ImageView view1,ImageView view2){
         //view2 should be null drawable at this line
@@ -353,12 +253,26 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         Button regame_btn = new Button(getApplicationContext());
         regame_btn.setText("다시하기");
         regame_btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT));
+        regame_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadGame(image);
+            }
+        });
         linearLayout.addView(regame_btn);
+
 
         Button exit_btn = new Button(getApplicationContext());
         exit_btn.setText("끝내기");
         exit_btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT));
+        exit_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onDestroy();
+            }
+        });
         linearLayout.addView(exit_btn);
+
     }
 
 }

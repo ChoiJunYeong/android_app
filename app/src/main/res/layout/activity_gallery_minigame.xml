@@ -7,13 +7,6 @@
     tools:context=".GalleryMinigameActivity"
     android:id="@+id/minigame_root_layout">
 
-    <GridView android:id="@+id/galleryView"
-        android:numColumns="4"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".GalleryActivity">
-    </GridView>
-
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
