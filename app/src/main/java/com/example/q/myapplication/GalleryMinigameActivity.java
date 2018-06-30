@@ -36,6 +36,7 @@ public class GalleryMinigameActivity extends AppCompatActivity {
     //GalleryMinigameActivity.GalleryAdapter galleryAdapter;
     Drawable lost_piece;
     Bitmap image;
+    int count=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +102,7 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         }
 
         shuffle();
+        count=0;
     }
     public void setOnClickMove(int i,int j,ImageView view){
         //set direction
@@ -147,6 +149,9 @@ public class GalleryMinigameActivity extends AppCompatActivity {
                     TableRow row2 = (TableRow) tableLayout.getChildAt(y+1);
                     if(row2.getChildAt(x).getTag() == "blank")
                         swap((ImageView)view, (ImageView) row2.getChildAt(x));}
+                if(isComplete()){
+                    showCompleteView();
+                }
             }
         });
 
@@ -178,19 +183,23 @@ public class GalleryMinigameActivity extends AppCompatActivity {
             while (old_direction + shuffle_direction == 1 || old_direction + shuffle_direction == 5);
             if (shuffle_direction == 0 && y > 0) {
                 ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y - 1)).getChildAt(x);
-                imageView.performClick();
+                swap(imageView,blankView);
+                blankView=imageView;
                 y--;
             } else if (shuffle_direction == 1 && y < 2) {
                 ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y + 1)).getChildAt(x);
-                imageView.performClick();
+                swap(imageView,blankView);
+                blankView=imageView;
                 y++;
             } else if (shuffle_direction == 2 && x > 0) {
                 ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y)).getChildAt(x - 1);
-                imageView.performClick();
+                swap(imageView,blankView);
+                blankView=imageView;
                 x--;
             } else if (shuffle_direction == 3 && x < 2) {
                 ImageView imageView = (ImageView) ((TableRow) table.getChildAt(y)).getChildAt(x + 1);
-                imageView.performClick();
+                swap(imageView,blankView);
+                blankView=imageView;
                 x++;
             }
             else {
@@ -207,9 +216,8 @@ public class GalleryMinigameActivity extends AppCompatActivity {
 
         view2.setImageDrawable(view1.getDrawable());
         view1.setImageDrawable(null);
-        if(isComplete()){
-            showCompleteView();
-        }
+
+        count++;
     }
     public boolean isComplete(){
         TableLayout tableLayout = findViewById(R.id.table);
@@ -236,7 +244,7 @@ public class GalleryMinigameActivity extends AppCompatActivity {
                 }
             }
         }
-
+        //complete view layout
         ViewGroup root = findViewById(R.id.minigame_root_layout);
         LinearLayout linearLayout = new LinearLayout(getApplicationContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -245,11 +253,17 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         linearLayout.setGravity(Gravity.CENTER);
         root.addView(linearLayout);
 
+        //complete! text
         TextView complete_message = new TextView(getApplicationContext());
         complete_message.setText(getResources().getText(R.string.complete)); complete_message.setTextColor(Color.BLACK); complete_message.setTextSize(50);
         complete_message.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         linearLayout.addView(complete_message);
-
+        //score text
+        TextView score = new TextView(getApplicationContext());
+        score.setText("이동 수: "+String.valueOf(count)); score.setTextSize(30);
+        score.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        linearLayout.addView(score);
+        //replay btn
         Button regame_btn = new Button(getApplicationContext());
         regame_btn.setText("다시하기");
         regame_btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -261,7 +275,7 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         });
         linearLayout.addView(regame_btn);
 
-
+        //exit btn
         Button exit_btn = new Button(getApplicationContext());
         exit_btn.setText("끝내기");
         exit_btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT));
