@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/galleryView"
-    android:numColumns="4"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GalleryActivity">
+    android:id="@+id/root_layout">
 
-</GridView>
+
+    <GridView android:id="@+id/galleryView"
+        android:numColumns="4"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".GalleryActivity">
+    </GridView>
+</android.support.constraint.ConstraintLayout>

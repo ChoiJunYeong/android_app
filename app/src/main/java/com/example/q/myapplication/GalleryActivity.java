@@ -31,9 +31,9 @@ public class GalleryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
-        loadGallery();
+        setGalleryAdapter(true);
     }
-    public void loadGallery() {
+    public ArrayList<String> loadGallery() {
 
         Uri uri;
         Cursor cursor;
@@ -58,13 +58,24 @@ public class GalleryActivity extends AppCompatActivity {
             imagePath.add(absolutePathOfImage);
         }
         cursor.close();
-
-        //set adapter
-        galleryAdapter = new GalleryAdapter(getApplicationContext(),imagePath);
-        GridView gridView = findViewById(R.id.galleryView);
-        gridView.setAdapter(galleryAdapter);
+        return imagePath;
     }
-
+    public void setGalleryAdapter(boolean state){
+        GridView gridView = findViewById(R.id.galleryView);
+        ViewGroup root = findViewById(R.id.root_layout);
+        if(state){
+            //remove other layouts
+            while(root.getChildCount()>1){
+                root.removeViewAt(1);
+            }
+            //set adapter
+            galleryAdapter = new GalleryAdapter(getApplicationContext(),loadGallery());
+            gridView.setAdapter(galleryAdapter);
+        }
+        else{
+            gridView.setAdapter(null);
+        }
+    }
     public class GalleryAdapter extends BaseAdapter{
         private Context context;
         private ArrayList<String> imagePath;
@@ -84,17 +95,38 @@ public class GalleryActivity extends AppCompatActivity {
         }
         public View getView(int position, View convertView, ViewGroup parent) {
             try {
+                //read image from image path string
                 File f = new File((String) getItem(position));
                 Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
-
+                //set image
                 ImageView imageView = new ImageView(getApplicationContext());
                 imageView.setImageBitmap(image);
-
+                //set parameter of imageView
                 DisplayMetrics displayMetrics = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
                 int width = displayMetrics.widthPixels;
                 imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, width /3));
 
+                //set image onclick listener, show image int big size
+                imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ImageView imageView = new ImageView(getApplicationContext());
+                        ViewGroup root = findViewById(R.id.root_layout);
+                        imageView.setImageDrawable(((ImageView)view).getDrawable());
+                        imageView.setBackgroundColor(0xFFFFFFFF);
+                        imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+                        root.addView(imageView);
+                        setGalleryAdapter(false);
+
+                        imageView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                setGalleryAdapter(true);
+                            }
+                        });
+                    }
+                });
                 return imageView;
             }catch (FileNotFoundException e){
                 e.printStackTrace();
