@@ -1,6 +1,7 @@
 package com.example.q.myapplication;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -101,6 +102,7 @@ public class GalleryActivity extends AppCompatActivity {
                 //set image
                 ImageView imageView = new ImageView(getApplicationContext());
                 imageView.setImageBitmap(image);
+                imageView.setTag((String) getItem(position));
                 //set parameter of imageView
                 DisplayMetrics displayMetrics = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -111,20 +113,26 @@ public class GalleryActivity extends AppCompatActivity {
                 imageView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        ImageView imageView = new ImageView(getApplicationContext());
+                        /*
+                            this is function that show only one picture at big size
+                        */
+                        /*ImageView imageView = new ImageView(getApplicationContext());
                         ViewGroup root = findViewById(R.id.root_layout);
                         imageView.setImageDrawable(((ImageView)view).getDrawable());
                         imageView.setBackgroundColor(0xFFFFFFFF);
                         imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
                         root.addView(imageView);
                         setGalleryAdapter(false);
-
                         imageView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 setGalleryAdapter(true);
                             }
                         });
+                        */
+                        Intent intent = new Intent(getApplicationContext(),GalleryMinigameActivity.class);
+                        intent.putExtra("image",view.getTag().toString());
+                        startActivity(intent);
                     }
                 });
                 return imageView;
