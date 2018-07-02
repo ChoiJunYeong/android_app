@@ -1,11 +1,21 @@
 package com.example.q.myapplication;
 
+import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -14,34 +24,28 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DemoActivity extends AppCompatActivity {
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
-
+    int gallery_page=0;
+    ArrayList<String> img_path;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,27 +55,220 @@ public class DemoActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        ArrayList<String> permissions = new ArrayList<>();
+        permissions.add(checkPermission(Manifest.permission.READ_CONTACTS));
+        permissions.add(checkPermission(Manifest.permission.WRITE_CONTACTS));
+        permissions.add(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE));
+        permissions.add(checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE));
+        while(permissions.remove(null));
+        if(!permissions.isEmpty())
+            getPermission(permissions.toArray(new String[permissions.size()]), permissions.size());
 
-        mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+
+        setTablayout();
+
+    }
+
+
+    public String checkPermission(String request){
+        if(ContextCompat.checkSelfPermission(this,request) != PackageManager.PERMISSION_GRANTED){
+            return request;
+        }
+        else
+            return null;
+    }
+    public void getPermission(String[] permissions,int request_code){
+        ActivityCompat.requestPermissions(this, permissions, request_code);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        // If request is cancelled, the result arrays are empty.
+        if(grantResults.length > 0) {
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    Toast.makeText(this, "Permission Denied. Cannot Launch app.", Toast.LENGTH_SHORT).show();
+                    onDestroy();
+                }
+            }
+        }
+    }
+
+
+
+    public void setTablayout(){
+        ViewGroup item_selector = findViewById(R.id.container);
+
+
+        TabLayout tabLayout = findViewById(R.id.tabs);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0:
+                        break;
+                    case 1:
+                        findViewById(R.id.gallery_root_layout).setVisibility(View.VISIBLE);
+                        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+                        fab.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                gallery_page++;
+                                setGalleryAdapter();
+                            }
+                        });
+                        break;
+                    case 2:
+
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0:
+                        break;
+                    case 1:
+                        findViewById(R.id.gallery_root_layout).setVisibility(View.INVISIBLE);
+                        break;
+                    case 2:
+
+                        break;
+                }
             }
         });
 
+        View tab2 = getLayoutInflater().inflate(R.layout.activity_gallery, null);
+        item_selector.addView(tab2);
+        setGalleryAdapter();
+        setGalleryAdapter();
     }
+
+
+
+    GalleryAdapter galleryAdapter;
+    public ArrayList<String> loadGallery() {
+
+        Uri uri;
+        Cursor cursor;
+        int column_index_data, column_index_folder_name;
+
+        String absolutePathOfImage = null;
+        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
+        //set query
+        final String orderBy = MediaStore.Images.Media.DATE_TAKEN;
+        cursor = getApplicationContext().getContentResolver().query(uri, projection, null, null, orderBy + " DESC");
+
+        //set variable to get query data
+        column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+        column_index_folder_name = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+
+        //query(get image path)
+        ArrayList<String> imagePath = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            absolutePathOfImage = cursor.getString(column_index_data);
+            imagePath.add(absolutePathOfImage);
+        }
+        cursor.close();
+        return imagePath;
+    }
+    public void setGalleryAdapter(){
+        GridView gridView = findViewById(R.id.galleryView);
+        ViewGroup root = findViewById(R.id.gallery_root_layout);
+        int page_size = 20;
+        img_path = loadGallery();
+        if(img_path.size()>gallery_page*page_size)
+            img_path.subList(0,gallery_page*page_size).clear();
+        else if(gallery_page==0){}
+        else{
+            Toast.makeText(this,"Last page",Toast.LENGTH_SHORT).show();
+            gallery_page--;
+            return;
+        }
+
+        if(img_path.size()>page_size)
+            img_path.subList(page_size,img_path.size()).clear();
+        //set adapter
+        galleryAdapter = new GalleryAdapter(getApplicationContext(),img_path);
+        gridView.setAdapter(galleryAdapter);
+    }
+    public class GalleryAdapter extends BaseAdapter {
+        private Context context;
+        private ArrayList<String> imagePath;
+        GalleryAdapter(Context context,ArrayList<String> imagePath){
+            this.context = context;
+            this.imagePath = imagePath;
+        }
+
+        public int getCount() {
+            return imagePath.size();
+        }
+        public Object getItem(int position) {
+            return imagePath.get(position);
+        }
+        public long getItemId(int position) {
+            return position;
+        }
+        public View getView(int position, View convertView, ViewGroup parent) {
+            try {
+                //read image from image path string
+                File f = new File((String) getItem(position));
+                Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
+                //set image
+                ImageView imageView = new ImageView(getApplicationContext());
+                imageView.setImageBitmap(image);
+                imageView.setTag((String) getItem(position));
+                //set parameter of imageView
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                int width = displayMetrics.widthPixels;
+                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, width /3));
+
+                //set image onclick listener, show image int big size
+                imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        /*
+                            this is function that show only one picture at big size
+                        */
+                        /*ImageView imageView = new ImageView(getApplicationContext());
+                        ViewGroup root = findViewById(R.id.gallery_root_layout);
+                        imageView.setImageDrawable(((ImageView)view).getDrawable());
+                        imageView.setBackgroundColor(0xFFFFFFFF);
+                        imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+                        root.addView(imageView);
+                        setGalleryAdapter(false);
+                        imageView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                setGalleryAdapter(true);
+                            }
+                        });
+                        */
+                        Intent intent = new Intent(getApplicationContext(),GalleryMinigameActivity.class);
+                        intent.putExtra("image",view.getTag().toString());
+                        startActivity(intent);
+                    }
+                });
+                return imageView;
+            }catch (FileNotFoundException e){
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+    }
+
 
 
     @Override
@@ -80,7 +277,6 @@ public class DemoActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_demo, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -94,98 +290,5 @@ public class DemoActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_demo, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-    }
-
-    private List<String> getContactList() {
-        List<String> phone_numbers = new ArrayList<>();
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-                null, null, null, null);
-
-        if ((cur != null ? cur.getCount() : 0) > 0) {
-            while (cur != null && cur.moveToNext()) {
-                String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contacts._ID));
-                String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.DISPLAY_NAME));
-                if (cur.getInt(cur.getColumnIndex(
-                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor pCur = cr.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[]{id}, null);
-                    while (pCur.moveToNext()) {
-                        String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        phone_numbers.add(name+phoneNo);
-                    }
-                    pCur.close();
-                }
-            }
-        }
-        if(cur!=null){
-            cur.close();
-        }
-        return phone_numbers;
     }
 }
