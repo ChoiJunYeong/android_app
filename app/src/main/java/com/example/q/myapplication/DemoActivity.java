@@ -485,18 +485,21 @@ public class DemoActivity extends AppCompatActivity {
         }
         public View getView(int position, View convertView, ViewGroup parent) {
             try {
+                //set parameter of imageView
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                int widthPixels = displayMetrics.widthPixels;
+                int heightPixels = displayMetrics.heightPixels;
+
                 //read image from image path string
                 File f = new File((String) getItem(position));
                 Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
                 //set image
                 ImageView imageView = new ImageView(getApplicationContext());
+                image =  Bitmap.createScaledBitmap(image,widthPixels/4,heightPixels/4,true);
                 imageView.setImageBitmap(image);
                 imageView.setTag((String) getItem(position));
-                //set parameter of imageView
-                DisplayMetrics displayMetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                int width = displayMetrics.widthPixels;
-                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, width /3));
+                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, heightPixels/4));
 
                 //set image onclick listener, show image int big size
                 imageView.setOnClickListener(new View.OnClickListener() {

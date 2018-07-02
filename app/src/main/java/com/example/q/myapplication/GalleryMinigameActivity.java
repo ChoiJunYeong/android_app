@@ -64,8 +64,16 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         ViewGroup root = findViewById(R.id.minigame_root_layout);
         while(root.getChildCount()>1)
             root.removeViewAt(1);
+
+        //get display size
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int widthPixels = displayMetrics.widthPixels;
+        int heightPixels = displayMetrics.heightPixels;
+
         //divide to 3X3 image
         Bitmap[][] puzzles = new Bitmap[3][3];
+        image = resize(image,widthPixels,heightPixels);
         int width = image.getWidth()/3, height = image.getHeight()/3;
         TableLayout tableLayout = findViewById(R.id.table);
         TableRow row = findViewById(R.id.row1);
@@ -176,7 +184,7 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         Random shuffle_random = new Random();
         int old_direction = -10;
         int shuffle_direction=5; //0=up,1=down,2=left,3=right
-        for(int i=0;i<70;i++) {
+        for(int i=0;i<2;i++) {
             do {
                 shuffle_direction = shuffle_random.nextInt(4); //0=up,1=down,2=left,3=right
             }
@@ -282,11 +290,15 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         exit_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onDestroy();
+                finish();
             }
         });
         linearLayout.addView(exit_btn);
 
     }
-
+    public Bitmap resize(Bitmap image,int width,int height ){
+        float width_original = image.getWidth();
+        float height_original = image.getHeight();
+        return Bitmap.createScaledBitmap(image,width,(int)(((float)width) * (width_original/height_original)),true);
+    }
 }

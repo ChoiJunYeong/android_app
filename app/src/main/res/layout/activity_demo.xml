@@ -45,15 +45,13 @@
         android:id="@+id/container"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:context=".PageActivity"/>
+        android:layout_height="wrap_content"/>
 
     <FrameLayout
         android:id="@+id/container2"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:context=".PageActivity"/>
+        android:layout_height="wrap_content"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
