@@ -62,6 +62,7 @@ public class DemoActivity extends AppCompatActivity {
         permissions.add(checkPermission(Manifest.permission.WRITE_CONTACTS));
         permissions.add(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE));
         permissions.add(checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE));
+        permissions.add(checkPermission(Manifest.permission.INTERNET));
         while(permissions.remove(null));
         if(!permissions.isEmpty())
             getPermission(permissions.toArray(new String[permissions.size()]), permissions.size());
@@ -69,7 +70,7 @@ public class DemoActivity extends AppCompatActivity {
 
 
         setTablayout();
-
+        startActivity(new Intent(this,GithubActivity.class));
     }
 
 
