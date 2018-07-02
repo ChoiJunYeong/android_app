@@ -126,6 +126,7 @@ public class DemoActivity extends AppCompatActivity {
                 switch (tab.getPosition()) {
                     case 0:
                         findViewById(R.id.context_root_layout).setVisibility(View.VISIBLE);
+                        findViewById(R.id.fab).setVisibility(View.INVISIBLE);
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.VISIBLE);
@@ -137,6 +138,7 @@ public class DemoActivity extends AppCompatActivity {
                                 setGalleryAdapter();
                             }
                         });
+                        findViewById(R.id.fab).setVisibility(View.VISIBLE);
                         break;
                     case 2:
 
@@ -178,6 +180,8 @@ public class DemoActivity extends AppCompatActivity {
                 startActivityForResult(intent_detail, 0);
             }
         });
+
+        findViewById(R.id.fab).setVisibility(View.INVISIBLE);
 
 
         View tab2 = getLayoutInflater().inflate(R.layout.activity_gallery, null);
