@@ -26,11 +26,14 @@ import java.util.ArrayList;
 
 public class GithubActivity extends AppCompatActivity {
     GithubAdapter githubAdapter;
+    int num_of_history = 5;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_github);
 
+
+        final ArrayList<Integer> graph_points = new ArrayList<>();
         //new tread for get html of github
         Thread thread = new Thread(new Runnable() {
 
@@ -67,6 +70,7 @@ public class GithubActivity extends AppCompatActivity {
                                     number.add(0,add_del_log.charAt(i));
                                 }
                                 unit_data[0]=getNumber(number) + " addition";
+                                graph_points.add(Integer.parseInt(getNumber(number)));
                             }
                             else{
                                 unit_data[0]=null;
@@ -83,7 +87,11 @@ public class GithubActivity extends AppCompatActivity {
                                 unit_data[1]=null;
                             }
                             data.add(unit_data);
+                            if(data.size()>=num_of_history)
+                                break;
                         }
+                        if(data.size()>=num_of_history)
+                            break;
                     }
 
                     //str.add(doc.title());
@@ -105,7 +113,17 @@ public class GithubActivity extends AppCompatActivity {
 
 
         thread.start();
-
+        LinearLayout layout = findViewById(R.id.github_history_layout);
+        if(layout.getChildCount()>=num_of_history)
+            thread.interrupt();
+        try {
+            thread.join();
+            //그래프에 들어갈 점 배열
+            GraphView graphview = (GraphView) findViewById(R.id.github_graph);
+            Toast.makeText(getApplicationContext(),graph_points.toString(),Toast.LENGTH_LONG).show();
+            graphview.setPoints(graph_points, 1, 0, 500);
+            graphview.drawForBeforeDrawView();
+        }catch (InterruptedException e){}
     }
     public void setHorizontalScrollView(LinearLayout view,ArrayList<String[]> data){
         LayoutInflater layoutInflater = LayoutInflater.from(this);
@@ -120,6 +138,9 @@ public class GithubActivity extends AppCompatActivity {
             view.addView(convertView);
         }
     }
+
+    //get number
+    //ex) adfvcxnm 31 acvt --> 31
     public String getNumber(ArrayList<Character> num_array){
         int num = 0;
         for(int i=0;i<num_array.size();i++){

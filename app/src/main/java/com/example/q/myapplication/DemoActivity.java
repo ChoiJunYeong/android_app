@@ -64,8 +64,7 @@ public class DemoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_demo);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
 
@@ -117,6 +116,7 @@ public class DemoActivity extends AppCompatActivity {
 
     public void setTablayout(){
         ViewGroup item_selector = findViewById(R.id.container);
+        ViewGroup item_selector2 = findViewById(R.id.container2);
 
 
         TabLayout tabLayout = findViewById(R.id.tabs);
@@ -166,11 +166,9 @@ public class DemoActivity extends AppCompatActivity {
         });
 
         View tab1 = getLayoutInflater().inflate(R.layout.activity_phonebook, null);
-        item_selector.addView(tab1);
+        item_selector2.addView(tab1);
 
         mListview = (ListView) findViewById(R.id.listview);
-        mBtnAddress = (Button) findViewById(R.id.btnAddress);
-        maddAddress = (Button) findViewById(R.id.button2);
         mListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -193,8 +191,6 @@ public class DemoActivity extends AppCompatActivity {
 
     ArrayList<Map<String, String>> dataList;
     ListView mListview;
-    private Button mBtnAddress;
-    private Button maddAddress;
 
 
 
