@@ -8,6 +8,7 @@
     android:paddingRight="8dp"
     android:paddingTop="8dp"
     android:paddingBottom="8dp"
+    android:id="@+id/context_root_layout"
     android:background="#B3E5FC">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -26,7 +27,7 @@
             android:text="불러오기"
             android:textSize="16sp"
             android:layout_margin="4dp"
-
+            android:onClick="onClick"
             android:background="#E1F5FE"
             android:id="@+id/btnAddress"/>
 
@@ -39,7 +40,7 @@
             android:text="추가하기"
             android:textSize="16sp"
             android:layout_margin="4dp"
-
+            android:onClick="onClick"
             android:background="#E1F5FE"
             android:id="@+id/button2"/>
 
