@@ -60,7 +60,7 @@ public class GraphView extends View {
         int[] points = mPoints;
 
         //x축 점 사이의 거리
-        float gapx = (float)getWidth() / points.length;
+        float gapx = (float)getWidth() / 6;
         //y축 단위 사이의 거리
         float gapy = (height - mPointSize) / mDivide;
 
@@ -72,7 +72,7 @@ public class GraphView extends View {
 
         for(int i = 0 ; i < length ; i++) {
             //점 좌표를 구한다
-            int x = (int)(halfgab + (i * gapx));
+            int x = (int)(halfgab*3 + (i * gapx));
             int y = (int)(height - mPointRadius - (((points[i] / mUnit) - mOrigin) * gapy));
 
             mPointX[i] = x;

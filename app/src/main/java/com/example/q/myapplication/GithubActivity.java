@@ -40,18 +40,25 @@ public class GithubActivity  {
     }
     public static void setHorizontalScrollView(LinearLayout view,ArrayList<String[]> data,Context context){
         LayoutInflater layoutInflater = LayoutInflater.from(context);
-        for(int position = 0;position<data.size();position++) {
-            View convertView = layoutInflater.inflate(R.layout.github_item, null);
-            TextView add_txt = (TextView) convertView.findViewById(R.id.add_num);
-            TextView del_txt = (TextView) convertView.findViewById(R.id.delete_num);
-            TextView date_txt = (TextView) convertView.findViewById(R.id.date);
+        for(int position = 0;position<6;position++) {
+            if(data.size()<=position)
+                break;
+            ViewGroup convertView = (ViewGroup)view.getChildAt(position+1);
+            TextView add_txt = (TextView) convertView.getChildAt(0);
+            TextView del_txt = (TextView) convertView.getChildAt(1);
+            TextView date_txt = (TextView) convertView.getChildAt(2);
             if (data.get(position)[0] != null)
                 add_txt.setText(data.get(position)[0]);
+            else
+                add_txt.setText('-');
             if (data.get(position)[1] != null)
                 del_txt.setText(data.get(position)[1]);
+            else
+                del_txt.setText('-');
             if (data.get(position)[2] != null)
                 date_txt.setText(data.get(position)[2]);
-            view.addView(convertView);
+            else
+                date_txt.setText('-');
         }
     }
 
