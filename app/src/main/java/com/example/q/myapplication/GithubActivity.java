@@ -40,9 +40,10 @@ public class GithubActivity  {
     }
     public static void setHorizontalScrollView(LinearLayout view,ArrayList<String[]> data,Context context){
         LayoutInflater layoutInflater = LayoutInflater.from(context);
-        for(int position = 0;position<6;position++) {
+        for(int position = 0;position<5;position++) {
             if(data.size()<=position)
                 break;
+
             ViewGroup convertView = (ViewGroup)view.getChildAt(position+1);
             TextView add_txt = (TextView) convertView.getChildAt(0);
             TextView del_txt = (TextView) convertView.getChildAt(1);

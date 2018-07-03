@@ -130,6 +130,11 @@ public class DemoActivity extends AppCompatActivity {
 
 
     public void setTablayout(){
+
+        findViewById(R.id.refresh_btn).setVisibility(View.GONE);
+        findViewById(R.id.reset_btn).setVisibility(View.GONE);
+        findViewById(R.id.fab).setVisibility(View.GONE);
+
         ViewGroup item_selector = findViewById(R.id.container);
 
 
@@ -140,7 +145,6 @@ public class DemoActivity extends AppCompatActivity {
                 switch (tab.getPosition()) {
                     case 0:
                         findViewById(R.id.context_root_layout).setVisibility(View.VISIBLE);
-                        findViewById(R.id.fab).setVisibility(View.GONE);
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.VISIBLE);
@@ -155,18 +159,8 @@ public class DemoActivity extends AppCompatActivity {
                         findViewById(R.id.fab).setVisibility(View.VISIBLE);
                         break;
                     case 2:
-                        ViewGroup container = findViewById(R.id.container);
-                        View tab3 = getLayoutInflater().inflate(R.layout.activity_github, null);
-                        container.addView(tab3);
-                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                        String url = preferences.getString("URL", "");
-                        if(url!="") {
-                            Log.d("github url is",url);
-                            getGithubLog(url);
-                        }
-                        else
-                            GithubActivity.setRepository(context);
-                        findViewById(R.id.fab).setVisibility(View.GONE);
+                        findViewById(R.id.refresh_btn).setVisibility(View.VISIBLE);
+                        findViewById(R.id.reset_btn).setVisibility(View.VISIBLE);
                         break;
                 }
             }
@@ -184,10 +178,13 @@ public class DemoActivity extends AppCompatActivity {
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.GONE);
+                        findViewById(R.id.fab).setVisibility(View.GONE);
                         break;
                     case 2:
                         ViewGroup container = findViewById(R.id.container);
                         container.removeView(findViewById(R.id.github_root_layout));
+                        findViewById(R.id.refresh_btn).setVisibility(View.GONE);
+                        findViewById(R.id.reset_btn).setVisibility(View.GONE);
                         break;
                 }
             }
@@ -696,10 +693,8 @@ public class DemoActivity extends AppCompatActivity {
                 });
             }
         });
-        thread.start();
         LinearLayout layout = findViewById(R.id.github_history_layout);
-        if (layout.getChildCount() >= GithubActivity.getHistoryNum())
-            thread.interrupt();
+        thread.start();
         try {
             thread.join();
 
@@ -712,7 +707,28 @@ public class DemoActivity extends AppCompatActivity {
             Log.d("graph error","?");
         }
     }
-
+    public void onResetURL(View view){
+        GithubActivity.setRepository(context);
+        TabLayout tabs = findViewById(R.id.tabs);
+        tabs.getTabAt(0).select();
+    }
+    public void onRefreshLog(View view){
+        ViewGroup container = findViewById(R.id.container);
+        if(findViewById(R.id.github_root_layout)!=null)
+            container.removeView(findViewById(R.id.github_root_layout));
+        View tab3 = getLayoutInflater().inflate(R.layout.activity_github, null);
+        container.addView(tab3);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String url = preferences.getString("URL", "");
+        if(!url.equals("")) {
+            getGithubLog(url);
+        }
+        else {
+            GithubActivity.setRepository(context);
+            TabLayout tabs = findViewById(R.id.tabs);
+            tabs.getTabAt(0).select();
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

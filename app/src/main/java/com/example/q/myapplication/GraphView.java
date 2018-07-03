@@ -100,6 +100,7 @@ public class GraphView extends View {
 
     //그래프를 그린다(onCreate 등에서 호출시)
     public void drawForBeforeDrawView() {
+
         //뷰의 크기를 계산하여 그래프를 그리기 때문에 뷰가 실제로 만들어진 시점에서 함수를 호출해 준다
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
