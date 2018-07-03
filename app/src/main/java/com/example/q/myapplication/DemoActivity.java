@@ -96,7 +96,10 @@ public class DemoActivity extends AppCompatActivity {
 
 
 
-        setTablayout();
+        if(permissions.isEmpty())
+            setTablayout();
+        else
+            recreate();
       //  startActivity(new Intent(this,GithubActivity.class));
     }
 
@@ -218,7 +221,7 @@ public class DemoActivity extends AppCompatActivity {
 
     ArrayList<Map<String, String>> dataList;
     ListView mListview;
-
+    String Jsondata;
 
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -233,6 +236,21 @@ public class DemoActivity extends AppCompatActivity {
                 break;
         }
 
+    }
+
+
+    public void parsing_json(){
+        Jsondata = "";
+        if(dataList.size()!=0) {
+            Jsondata ="["+ "{\"name\"" + ":" + "\"" + dataList.get(0).get("name") + "\"" + ","
+                    + "\"phone\"" + ":" + "\"" + dataList.get(0).get("phone") + "\"" + "}";
+            for (int i = 1; i < dataList.size(); i++) {
+                String tempJson = ","+"{\"name\"" + ":" + "\"" + dataList.get(i).get("name") + "\"" + ","
+                        + "\"phone\"" + ":" + "\"" + dataList.get(i).get("phone") + "\"" + "}";
+                Jsondata = Jsondata + tempJson;
+            }
+            Jsondata = Jsondata + "]";
+        }
     }
 
     public void deleteContact(Context ctx, String phone, String name) {
@@ -286,6 +304,7 @@ public class DemoActivity extends AppCompatActivity {
             dataList.add(map);
         }// end while
         c.close();
+        parsing_json();
         SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
                 dataList,
                 android.R.layout.simple_list_item_2,
@@ -515,9 +534,9 @@ public class DemoActivity extends AppCompatActivity {
                 imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, heightPixels/6));
 
                 //set image onclick listener, show image int big size
-                imageView.setOnClickListener(new View.OnClickListener() {
+                imageView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
-                    public void onClick(View view) {
+                    public boolean onLongClick(View view) {
                         /*
                             this is function that show only one picture at big size
                         */
@@ -538,6 +557,33 @@ public class DemoActivity extends AppCompatActivity {
                         Intent intent = new Intent(getApplicationContext(),GalleryMinigameActivity.class);
                         intent.putExtra("image",view.getTag().toString());
                         startActivity(intent);
+                        return true;
+                    }
+                });
+                imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        /*
+                            this is function that show only one picture at big size
+                        */
+                        /*ImageView imageView = new ImageView(getApplicationContext());
+                        ViewGroup root = findViewById(R.id.gallery_root_layout);
+                        imageView.setImageDrawable(((ImageView)view).getDrawable());
+                        imageView.setBackgroundColor(0xFFFFFFFF);
+                        imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+                        root.addView(imageView);
+                        setGalleryAdapter(false);
+                        imageView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                setGalleryAdapter(true);
+                            }
+                        });
+                        */
+                        Intent intent = new Intent(getApplicationContext(),picture_expansion.class);
+                        intent.putExtra("image",view.getTag().toString());
+                        startActivity(intent);
+
                     }
                 });
                 return imageView;
