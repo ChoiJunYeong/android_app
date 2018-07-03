@@ -7,12 +7,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
@@ -30,6 +33,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,6 +52,11 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -59,6 +68,7 @@ import java.util.Map;
 public class DemoActivity extends AppCompatActivity {
     int gallery_page=0;
     ArrayList<String> img_path;
+    Context context = this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,7 +126,6 @@ public class DemoActivity extends AppCompatActivity {
 
     public void setTablayout(){
         ViewGroup item_selector = findViewById(R.id.container);
-        ViewGroup item_selector2 = findViewById(R.id.container2);
 
 
         TabLayout tabLayout = findViewById(R.id.tabs);
@@ -126,7 +135,7 @@ public class DemoActivity extends AppCompatActivity {
                 switch (tab.getPosition()) {
                     case 0:
                         findViewById(R.id.context_root_layout).setVisibility(View.VISIBLE);
-                        findViewById(R.id.fab).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.fab).setVisibility(View.GONE);
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.VISIBLE);
@@ -141,7 +150,18 @@ public class DemoActivity extends AppCompatActivity {
                         findViewById(R.id.fab).setVisibility(View.VISIBLE);
                         break;
                     case 2:
-
+                        ViewGroup container = findViewById(R.id.container);
+                        View tab3 = getLayoutInflater().inflate(R.layout.activity_github, null);
+                        container.addView(tab3);
+                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                        String url = preferences.getString("URL", "");
+                        if(url!="") {
+                            Log.d("github url is",url);
+                            getGithubLog(url);
+                        }
+                        else
+                            GithubActivity.setRepository(context);
+                        findViewById(R.id.fab).setVisibility(View.GONE);
                         break;
                 }
             }
@@ -155,20 +175,21 @@ public class DemoActivity extends AppCompatActivity {
             public void onTabUnselected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0:
-                        findViewById(R.id.context_root_layout).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.context_root_layout).setVisibility(View.GONE);
                         break;
                     case 1:
-                        findViewById(R.id.gallery_root_layout).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.gallery_root_layout).setVisibility(View.GONE);
                         break;
                     case 2:
-
+                        ViewGroup container = findViewById(R.id.container);
+                        container.removeView(findViewById(R.id.github_root_layout));
                         break;
                 }
             }
         });
 
         View tab1 = getLayoutInflater().inflate(R.layout.activity_phonebook, null);
-        item_selector2.addView(tab1);
+        item_selector.addView(tab1);
 
         mListview = (ListView) findViewById(R.id.listview);
         mListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -181,15 +202,15 @@ public class DemoActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.fab).setVisibility(View.INVISIBLE);
+        findViewById(R.id.fab).setVisibility(View.GONE);
 
 
         View tab2 = getLayoutInflater().inflate(R.layout.activity_gallery, null);
         item_selector.addView(tab2);
         setGalleryAdapter();
 
-    }
 
+    }
 
 
 
@@ -408,16 +429,6 @@ public class DemoActivity extends AppCompatActivity {
     }
 
 
-
-
-
-
-
-
-
-
-
-
     GalleryAdapter galleryAdapter;
     public ArrayList<String> loadGallery() {
 
@@ -496,10 +507,10 @@ public class DemoActivity extends AppCompatActivity {
                 Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
                 //set image
                 ImageView imageView = new ImageView(getApplicationContext());
-                image =  Bitmap.createScaledBitmap(image,widthPixels/4,heightPixels/4,true);
+                image =  Bitmap.createScaledBitmap(image,widthPixels/4,heightPixels/6,false);
                 imageView.setImageBitmap(image);
                 imageView.setTag((String) getItem(position));
-                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, heightPixels/4));
+                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, heightPixels/6));
 
                 //set image onclick listener, show image int big size
                 imageView.setOnClickListener(new View.OnClickListener() {
@@ -537,6 +548,99 @@ public class DemoActivity extends AppCompatActivity {
     }
 
 
+    public void getGithubLog(final String url){
+
+        final ArrayList<Integer> graph_points = new ArrayList<>();
+        //new tread for get html of github
+        Thread thread = new Thread(new Runnable() {
+
+
+            @Override
+            public void run() {
+                //stored data
+                final ArrayList<String[]> data = new ArrayList<String[]>();
+                try  {
+                    //access github
+                    Document github_doc = Jsoup.connect(url).get();
+
+                    //get elements day-by-day
+                    Elements list_by_day = github_doc.getElementsByClass("commit-group table-list table-list-bordered");
+
+
+                    for(Element list_one_day : list_by_day){
+                        //get elements commit-by-commit
+                        Elements all_commit = list_one_day.getElementsByClass("commit commits-list-item table-list-item js-navigation-item js-details-container Details js-socket-channel js-updatable-content");
+                        for(Element one_commit : all_commit){
+                            //get each commit history link, and connect
+                            String commit_link = one_commit.getElementsByClass("message").first().attr("href");
+                            Document commit_doc = Jsoup.connect("https://github.com"+commit_link).get();
+
+                            //get commit history title bar, which contain the number of added and deleted line
+                            String add_del_log = commit_doc.getElementsByClass("toc-diff-stats").first().toString();
+
+
+                            //get add line number
+                            ArrayList<Character> number = new ArrayList<>();
+                            String[] unit_data = new String[2];
+                            if(add_del_log.contains(" addition")) {
+                                for (int i = add_del_log.indexOf(" addition") - 1; add_del_log.charAt(i) != '>'; i--) {
+                                    number.add(0,add_del_log.charAt(i));
+                                }
+                                unit_data[0]="+"+GithubActivity.getNumber(number);
+                                graph_points.add(Integer.parseInt(GithubActivity.getNumber(number)));
+                            }
+                            else{
+                                unit_data[0]=null;
+                            }
+                            //get delete line number
+                            if(add_del_log.contains(" deletion")) {
+                                number = new ArrayList<>();
+                                for (int i = add_del_log.indexOf(" deletion") - 1; add_del_log.charAt(i) != '>'; i--) {
+                                    number.add(0, add_del_log.charAt(i));
+                                }
+                                unit_data[1]="-" + GithubActivity.getNumber(number);
+                            }
+                            else{
+                                unit_data[1]=null;
+                            }
+                            data.add(unit_data);
+                            if(data.size()>=GithubActivity.getHistoryNum())
+                                break;
+                        }
+                        if(data.size()>=GithubActivity.getHistoryNum())
+                            break;
+                    }
+
+                    //str.add(doc.title());
+                    //Your code goes here
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        LinearLayout listView = findViewById(R.id.github_history_layout);
+                        GithubActivity.setHorizontalScrollView(listView,data,getApplicationContext());
+                    }
+                });
+            }
+        });
+        thread.start();
+        LinearLayout layout = findViewById(R.id.github_history_layout);
+        if (layout.getChildCount() >= GithubActivity.getHistoryNum())
+            thread.interrupt();
+        try {
+            thread.join();
+
+            //그래프에 들어갈 점 배열
+            GraphView graphview = (GraphView) findViewById(R.id.github_graph);
+            Toast.makeText(getApplicationContext(), graph_points.toString(), Toast.LENGTH_LONG).show();
+            graphview.setPoints(graph_points, 1, 0, 1000);
+            graphview.drawForBeforeDrawView();
+        } catch (InterruptedException e) {
+            Log.d("graph error","?");
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
