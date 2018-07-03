@@ -58,26 +58,19 @@ public class picture_expansion extends AppCompatActivity {
 
 
     public void loadimage(Bitmap image) {
-        ViewGroup root = findViewById(R.id.minigame_root_layout);
-        while (root.getChildCount() > 1)
-            root.removeViewAt(1);
+        ViewGroup root = findViewById(R.id.activity_picture_expansion);
 
         //get display size
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int widthPixels = displayMetrics.widthPixels;
         int heightPixels = displayMetrics.heightPixels;
-
-        //divide to 3X3 image
-        Bitmap[][] puzzles = new Bitmap[1][1];
-        image = resize(image, widthPixels, heightPixels);
+        image=resize(image, widthPixels, heightPixels);
         int width = image.getWidth(), height = image.getHeight();
         TableLayout tableLayout = findViewById(R.id.table);
         TableRow row = findViewById(R.id.row1);
-        puzzles[1][1] = Bitmap.createBitmap(image, 1 * width, 1 * height, width, height);
         ImageView imageView = new ImageView(getApplicationContext());
-        imageView.setImageBitmap(puzzles[1][1]);
-        imageView.setTag(1 * 10 + 1);
+        imageView.setImageBitmap(image);
         if (row == null)
             Toast.makeText(getApplicationContext(), "Failed to load image. Please restart app.", Toast.LENGTH_LONG).show();
         else
