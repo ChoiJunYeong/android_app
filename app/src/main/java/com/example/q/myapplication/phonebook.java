@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class phonebook extends AppCompatActivity implements View.OnClickListener{
 
-
+    String Jsondata;
     ArrayList<Map<String, String>> dataList;
     ListView mListview;
     private Button mBtnAddress;
@@ -69,6 +69,25 @@ public class phonebook extends AppCompatActivity implements View.OnClickListener
 
     }
 
+
+    public void parsing_json(){
+        Jsondata = "";
+        if(dataList.size()!=0) {
+            Jsondata ="["+ "{\"name\"" + ":" + "\"" + dataList.get(0).get("name") + "\"" + ","
+                    + "\"phone\"" + ":" + "\"" + dataList.get(0).get("phone") + "\"" + "}";
+            for (int i = 1; i < dataList.size(); i++) {
+                String tempJson = ","+"{\"name\"" + ":" + "\"" + dataList.get(i).get("name") + "\"" + ","
+                        + "\"phone\"" + ":" + "\"" + dataList.get(i).get("phone") + "\"" + "}";
+                Jsondata = Jsondata + tempJson;
+            }
+            Jsondata = Jsondata + "]";
+        }
+    }
+
+
+
+
+
     public void deleteContact(Context ctx, String phone, String name) {
         Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone));
         Cursor cur = ctx.getContentResolver().query(contactUri, null, null, null, null);
@@ -90,6 +109,8 @@ public class phonebook extends AppCompatActivity implements View.OnClickListener
             cur.close();
         }
     }
+
+
 
     public void refresh(){
         dataList = new ArrayList<Map<String,String>>();
@@ -120,12 +141,14 @@ public class phonebook extends AppCompatActivity implements View.OnClickListener
             dataList.add(map);
         }// end while
         c.close();
+        parsing_json();
         SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
                 dataList,
                 android.R.layout.simple_list_item_2,
                 new String[]{"name", "phone"},
                 new int[]{android.R.id.text1, android.R.id.text2});
         mListview.setAdapter(adapter);
+
     }
 
 
