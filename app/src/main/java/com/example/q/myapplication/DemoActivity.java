@@ -65,6 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class DemoActivity extends AppCompatActivity {
     int gallery_page=0;
     ArrayList<String> img_path;
@@ -558,22 +560,41 @@ public class DemoActivity extends AppCompatActivity {
             @Override
             public void run() {
                 //stored data
+                Map<String, Integer> month = new HashMap<String, Integer>();
+                month.put("Jan",1);month.put("Feb",2);month.put("Mar",3);month.put("Apr",4);month.put("May",5);month.put("Jun",6);month.put("Jul",7);month.put("Aug",8);month.put("Sep",9);month.put("Oct",10);month.put("Nov",11);month.put("Dec",12);
                 final ArrayList<String[]> data = new ArrayList<String[]>();
                 try  {
                     //access github
-                    Document github_doc = Jsoup.connect(url).get();
+                    Document github_doc = Jsoup.connect(url).ignoreHttpErrors(true).get();
+
+
+                    //set day list
+                    Elements list_of_day = github_doc.getElementsByClass("commit-group-title");
+                    ArrayList<Integer[]> days = new ArrayList<>();
+                    for(Element day : list_of_day){
+                        int index = day.toString().indexOf("Commits on ")+11;
+                        Integer[] date = new Integer[3];
+                        String day_str=day.toString().substring(index);
+                        date[1] = month.get(day_str.substring(0,3));                    //mm
+                        day_str=day_str.substring(4);
+                        date[2] = Integer.parseInt(day_str.split(", ")[0]);     //dd
+                        date[0] = Integer.parseInt(day_str.split(", ")[1].substring(0,4));     //yy
+                        days.add(date);
+                    }
 
                     //get elements day-by-day
                     Elements list_by_day = github_doc.getElementsByClass("commit-group table-list table-list-bordered");
 
 
                     for(Element list_one_day : list_by_day){
+                        String[] unit_data = new String[3];
+                        int[] commit_data = {0,0};
                         //get elements commit-by-commit
                         Elements all_commit = list_one_day.getElementsByClass("commit commits-list-item table-list-item js-navigation-item js-details-container Details js-socket-channel js-updatable-content");
                         for(Element one_commit : all_commit){
                             //get each commit history link, and connect
                             String commit_link = one_commit.getElementsByClass("message").first().attr("href");
-                            Document commit_doc = Jsoup.connect("https://github.com"+commit_link).get();
+                            Document commit_doc = Jsoup.connect("https://github.com"+commit_link).ignoreHttpErrors(true).get();
 
                             //get commit history title bar, which contain the number of added and deleted line
                             String add_del_log = commit_doc.getElementsByClass("toc-diff-stats").first().toString();
@@ -581,16 +602,14 @@ public class DemoActivity extends AppCompatActivity {
 
                             //get add line number
                             ArrayList<Character> number = new ArrayList<>();
-                            String[] unit_data = new String[2];
                             if(add_del_log.contains(" addition")) {
                                 for (int i = add_del_log.indexOf(" addition") - 1; add_del_log.charAt(i) != '>'; i--) {
                                     number.add(0,add_del_log.charAt(i));
                                 }
-                                unit_data[0]="+"+GithubActivity.getNumber(number);
-                                graph_points.add(Integer.parseInt(GithubActivity.getNumber(number)));
+                                commit_data[0]+=Integer.parseInt(GithubActivity.getNumber(number));
                             }
                             else{
-                                unit_data[0]=null;
+                                //??
                             }
                             //get delete line number
                             if(add_del_log.contains(" deletion")) {
@@ -598,15 +617,21 @@ public class DemoActivity extends AppCompatActivity {
                                 for (int i = add_del_log.indexOf(" deletion") - 1; add_del_log.charAt(i) != '>'; i--) {
                                     number.add(0, add_del_log.charAt(i));
                                 }
-                                unit_data[1]="-" + GithubActivity.getNumber(number);
+                                commit_data[1]+=Integer.parseInt(GithubActivity.getNumber(number));
                             }
                             else{
-                                unit_data[1]=null;
+                                //??
                             }
-                            data.add(unit_data);
                             if(data.size()>=GithubActivity.getHistoryNum())
                                 break;
                         }
+                        unit_data[0]="+"+commit_data[0];
+                        unit_data[1]="-"+commit_data[1];
+                        Integer[] day = days.get(0);
+                        days.remove(0);
+                        unit_data[2]=day[1] + "-" + day[2];
+                        data.add(unit_data);
+                        graph_points.add(commit_data[0]);
                         if(data.size()>=GithubActivity.getHistoryNum())
                             break;
                     }

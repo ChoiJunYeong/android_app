@@ -44,10 +44,13 @@ public class GithubActivity  {
             View convertView = layoutInflater.inflate(R.layout.github_item, null);
             TextView add_txt = (TextView) convertView.findViewById(R.id.add_num);
             TextView del_txt = (TextView) convertView.findViewById(R.id.delete_num);
+            TextView date_txt = (TextView) convertView.findViewById(R.id.date);
             if (data.get(position)[0] != null)
                 add_txt.setText(data.get(position)[0]);
             if (data.get(position)[1] != null)
                 del_txt.setText(data.get(position)[1]);
+            if (data.get(position)[2] != null)
+                date_txt.setText(data.get(position)[2]);
             view.addView(convertView);
         }
     }
