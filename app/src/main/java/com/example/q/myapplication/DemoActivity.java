@@ -411,7 +411,22 @@ public class DemoActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         if ( name1.getText().toString().length() == 0 ) {
                             AlertDialog.Builder add2 = new AlertDialog.Builder(DemoActivity.this);
-                            add2.setTitle("공백입니다");
+                            add2.setTitle("이름이 공백입니다");
+                            add2.setNegativeButton("취소", new DialogInterface.OnClickListener(){
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            });
+
+                            add2.show();
+
+
+                        }
+
+                        if ( phone1.getText().toString().length() == 0 ) {
+                            AlertDialog.Builder add2 = new AlertDialog.Builder(DemoActivity.this);
+                            add2.setTitle("전화번호가 공백입니다");
                             add2.setNegativeButton("취소", new DialogInterface.OnClickListener(){
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {

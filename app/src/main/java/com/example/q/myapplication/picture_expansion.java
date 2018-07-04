@@ -66,8 +66,6 @@ public class picture_expansion extends AppCompatActivity {
         int widthPixels = displayMetrics.widthPixels;
         int heightPixels = displayMetrics.heightPixels;
         image=resize(image, widthPixels, heightPixels);
-        int width = image.getWidth(), height = image.getHeight();
-        TableLayout tableLayout = findViewById(R.id.table);
         TableRow row = findViewById(R.id.row1);
         ImageView imageView = new ImageView(getApplicationContext());
         imageView.setImageBitmap(image);
