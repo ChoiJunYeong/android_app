@@ -1,6 +1,7 @@
 package com.example.q.myapplication;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -14,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Debug;
 import android.os.RemoteException;
@@ -577,111 +579,9 @@ public class DemoActivity extends AppCompatActivity {
 
     }
     public void getGithubLog(final String url){
-
-        final ArrayList<Integer> graph_points = new ArrayList<>();
-        final ArrayList<String[]> data = new ArrayList<String[]>();
-        //new tread for get html of github
-        Thread thread = new Thread(new Runnable() {
-
-
-            @Override
-            public void run() {
-                //stored data
-                Map<String, Integer> month = new HashMap<String, Integer>();
-                month.put("Jan",1);month.put("Feb",2);month.put("Mar",3);month.put("Apr",4);month.put("May",5);month.put("Jun",6);month.put("Jul",7);month.put("Aug",8);month.put("Sep",9);month.put("Oct",10);month.put("Nov",11);month.put("Dec",12);
-                try  {
-                    //access github
-                    Document github_doc = Jsoup.connect(url).ignoreHttpErrors(true).get();
-
-
-                    //set day list
-                    Elements list_of_day = github_doc.getElementsByClass("commit-group-title");
-                    ArrayList<Integer[]> days = new ArrayList<>();
-                    for(Element day : list_of_day){
-                        int index = day.toString().indexOf("Commits on ")+11;
-                        Integer[] date = new Integer[3];
-                        String day_str=day.toString().substring(index);
-                        date[1] = month.get(day_str.substring(0,3));                    //mm
-                        day_str=day_str.substring(4);
-                        date[2] = Integer.parseInt(day_str.split(", ")[0]);     //dd
-                        date[0] = Integer.parseInt(day_str.split(", ")[1].substring(0,4));     //yy
-                        days.add(date);
-                    }
-
-                    //get elements day-by-day
-                    Elements list_by_day = github_doc.getElementsByClass("commit-group table-list table-list-bordered");
-
-
-                    for(Element list_one_day : list_by_day){
-                        String[] unit_data = new String[3];
-                        int[] commit_data = {0,0};
-                        //get elements commit-by-commit
-                        Elements all_commit = list_one_day.getElementsByClass("commit commits-list-item table-list-item js-navigation-item js-details-container Details js-socket-channel js-updatable-content");
-                        for(Element one_commit : all_commit){
-                            //get each commit history link, and connect
-                            String commit_link = one_commit.getElementsByClass("message").first().attr("href");
-                            Document commit_doc = Jsoup.connect("https://github.com"+commit_link).ignoreHttpErrors(true).get();
-
-                            //get commit history title bar, which contain the number of added and deleted line
-                            String add_del_log = commit_doc.getElementsByClass("toc-diff-stats").first().toString();
-
-
-                            //get add line number
-                            ArrayList<Character> number = new ArrayList<>();
-                            if(add_del_log.contains(" addition")) {
-                                for (int i = add_del_log.indexOf(" addition") - 1; add_del_log.charAt(i) != '>'; i--) {
-                                    number.add(0,add_del_log.charAt(i));
-                                }
-                                commit_data[0]+=Integer.parseInt(GithubActivity.getNumber(number));
-                            }
-                            else{
-                                //??
-                            }
-                            //get delete line number
-                            if(add_del_log.contains(" deletion")) {
-                                number = new ArrayList<>();
-                                for (int i = add_del_log.indexOf(" deletion") - 1; add_del_log.charAt(i) != '>'; i--) {
-                                    number.add(0, add_del_log.charAt(i));
-                                }
-                                commit_data[1]+=Integer.parseInt(GithubActivity.getNumber(number));
-                            }
-                            else{
-                                //??
-                            }
-                            if(data.size()>=GithubActivity.getHistoryNum())
-                                break;
-                        }
-                        unit_data[0]="+"+commit_data[0];
-                        unit_data[1]="-"+commit_data[1];
-                        Integer[] day = days.get(0);
-                        days.remove(0);
-                        unit_data[2]=day[1] + "-" + day[2];
-                        data.add(unit_data);
-                        graph_points.add(commit_data[0]);
-                        if(data.size()>=GithubActivity.getHistoryNum())
-                            break;
-                    }
-
-                    //str.add(doc.title());
-                    //Your code goes here
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        LinearLayout listView = findViewById(R.id.github_history_layout);
-        thread.start();
-        try {
-            thread.join();
-            GithubActivity.setHorizontalScrollView(listView,data,getApplicationContext());
-            //그래프에 들어갈 점 배열
-            GraphView graphview = (GraphView) findViewById(R.id.github_graph);
-            Toast.makeText(getApplicationContext(), graph_points.toString(), Toast.LENGTH_LONG).show();
-            graphview.setPoints(graph_points, 1, 0, 1000);
-            graphview.drawForBeforeDrawView();
-        } catch (InterruptedException e) {
-            Log.d("graph error","?");
-        }
+        DemoActivity demoActivity = this;
+        MyAsync myAsync = new MyAsync(demoActivity);
+        myAsync.execute(url);
     }
     public void onResetURL(View view){
         GithubActivity.setRepository(context);
@@ -701,6 +601,18 @@ public class DemoActivity extends AppCompatActivity {
             GithubActivity.setRepository(context);
         }
     }
+
+    public ProgressDialog setProgressDialog(){
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Loading ...");
+        progressDialog.show();
+        return progressDialog;
+    }
+
+
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -720,5 +632,128 @@ public class DemoActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+}
+class MyAsync extends AsyncTask<String, Void, Void> {
+    private ProgressDialog dialog;
+    DemoActivity context;
+    ArrayList<Integer> graph_add_points,graph_del_points;
+    ArrayList<String[]> data;
+
+    MyAsync (DemoActivity ma){
+        this.context= ma;
+        dialog= new ProgressDialog(ma);
+        graph_add_points = new ArrayList<>();
+        graph_del_points = new ArrayList<>();
+        data = new ArrayList<String[]>();
+    }
+
+    @Override
+    protected void onPreExecute() {
+        this.dialog.setMessage("Loading");
+        this.dialog.show();
+        this.dialog.setCancelable(false);
+
+        super.onPreExecute();
+    }
+    @Override
+    protected Void doInBackground(String... params) {
+        //new tread for get html of github
+        //stored data
+        Map<String, Integer> month = new HashMap<String, Integer>();
+        month.put("Jan",1);month.put("Feb",2);month.put("Mar",3);month.put("Apr",4);month.put("May",5);month.put("Jun",6);month.put("Jul",7);month.put("Aug",8);month.put("Sep",9);month.put("Oct",10);month.put("Nov",11);month.put("Dec",12);
+        try  {
+            //access github
+            Document github_doc = Jsoup.connect(params[0]).get();
+
+
+            //set day list
+            Elements list_of_day = github_doc.getElementsByClass("commit-group-title");
+            ArrayList<Integer[]> days = new ArrayList<>();
+            for(Element day : list_of_day){
+                int index = day.toString().indexOf("Commits on ")+11;
+                Integer[] date = new Integer[3];
+                String day_str=day.toString().substring(index);
+                date[1] = month.get(day_str.substring(0,3));                    //mm
+                day_str=day_str.substring(4);
+                date[2] = Integer.parseInt(day_str.split(", ")[0]);     //dd
+                date[0] = Integer.parseInt(day_str.split(", ")[1].substring(0,4));     //yy
+                days.add(date);
+            }
+
+            //get elements day-by-day
+            Elements list_by_day = github_doc.getElementsByClass("commit-group table-list table-list-bordered");
+
+
+            for(Element list_one_day : list_by_day){
+                String[] unit_data = new String[3];
+                int[] commit_data = {0,0};
+                //get elements commit-by-commit
+                Elements all_commit = list_one_day.getElementsByClass("commit commits-list-item table-list-item js-navigation-item js-details-container Details js-socket-channel js-updatable-content");
+                for(Element one_commit : all_commit){
+                    //get each commit history link, and connect
+                    String commit_link = one_commit.getElementsByClass("message").first().attr("href");
+                    Document commit_doc = Jsoup.connect("https://github.com"+commit_link).get();
+
+                    //get commit history title bar, which contain the number of added and deleted line
+                    String add_del_log = commit_doc.getElementsByClass("toc-diff-stats").first().toString();
+
+
+                    //get add line number
+                    ArrayList<Character> number = new ArrayList<>();
+                    if(add_del_log.contains(" addition")) {
+                        for (int i = add_del_log.indexOf(" addition") - 1; add_del_log.charAt(i) != '>'; i--) {
+                            number.add(0,add_del_log.charAt(i));
+                        }
+                        commit_data[0]+=Integer.parseInt(GithubActivity.getNumber(number));
+                    }
+                    else{
+                        //??
+                    }
+                    //get delete line number
+                    if(add_del_log.contains(" deletion")) {
+                        number = new ArrayList<>();
+                        for (int i = add_del_log.indexOf(" deletion") - 1; add_del_log.charAt(i) != '>'; i--) {
+                            number.add(0, add_del_log.charAt(i));
+                        }
+                        commit_data[1]+=Integer.parseInt(GithubActivity.getNumber(number));
+                    }
+                    else{
+                        //??
+                    }
+                    if(data.size()>=GithubActivity.getHistoryNum())
+                        break;
+                }
+                unit_data[0]="+"+commit_data[0];
+                unit_data[1]="-"+commit_data[1];
+                Integer[] day = days.get(0);
+                days.remove(0);
+                unit_data[2]=day[1] + "-" + day[2];
+                data.add(unit_data);
+                graph_add_points.add(commit_data[0]);
+                graph_del_points.add(commit_data[1]);
+                if(data.size()>=GithubActivity.getHistoryNum())
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void result) {
+        super.onPostExecute(result);
+        if (dialog.isShowing()) {
+            dialog.dismiss();
+            LinearLayout listView = context.findViewById(R.id.github_history_layout);
+            GithubActivity.setHorizontalScrollView(listView,data,context);
+            //그래프에 들어갈 점 배열
+            GraphView graphview = (GraphView) context.findViewById(R.id.github_graph);
+            graphview.setPoints(graph_add_points,graph_del_points, 1, 0, 1000);
+            graphview.drawForBeforeDrawView();
+            graphview.invalidate();
+        }
     }
 }

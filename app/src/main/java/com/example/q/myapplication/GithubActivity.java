@@ -43,7 +43,6 @@ public class GithubActivity  {
         for(int position = 0;position<5;position++) {
             if(data.size()<=position)
                 break;
-
             ViewGroup convertView = (ViewGroup)view.getChildAt(position+1);
             TextView add_txt = (TextView) convertView.getChildAt(0);
             TextView del_txt = (TextView) convertView.getChildAt(1);
