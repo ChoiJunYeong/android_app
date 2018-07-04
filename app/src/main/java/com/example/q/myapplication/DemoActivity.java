@@ -579,6 +579,7 @@ public class DemoActivity extends AppCompatActivity {
     public void getGithubLog(final String url){
 
         final ArrayList<Integer> graph_points = new ArrayList<>();
+        final ArrayList<String[]> data = new ArrayList<String[]>();
         //new tread for get html of github
         Thread thread = new Thread(new Runnable() {
 
@@ -588,7 +589,6 @@ public class DemoActivity extends AppCompatActivity {
                 //stored data
                 Map<String, Integer> month = new HashMap<String, Integer>();
                 month.put("Jan",1);month.put("Feb",2);month.put("Mar",3);month.put("Apr",4);month.put("May",5);month.put("Jun",6);month.put("Jul",7);month.put("Aug",8);month.put("Sep",9);month.put("Oct",10);month.put("Nov",11);month.put("Dec",12);
-                final ArrayList<String[]> data = new ArrayList<String[]>();
                 try  {
                     //access github
                     Document github_doc = Jsoup.connect(url).ignoreHttpErrors(true).get();
@@ -667,20 +667,13 @@ public class DemoActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        LinearLayout listView = findViewById(R.id.github_history_layout);
-                        GithubActivity.setHorizontalScrollView(listView,data,getApplicationContext());
-                    }
-                });
             }
         });
-        LinearLayout layout = findViewById(R.id.github_history_layout);
+        LinearLayout listView = findViewById(R.id.github_history_layout);
         thread.start();
         try {
             thread.join();
-
+            GithubActivity.setHorizontalScrollView(listView,data,getApplicationContext());
             //그래프에 들어갈 점 배열
             GraphView graphview = (GraphView) findViewById(R.id.github_graph);
             Toast.makeText(getApplicationContext(), graph_points.toString(), Toast.LENGTH_LONG).show();
@@ -692,8 +685,6 @@ public class DemoActivity extends AppCompatActivity {
     }
     public void onResetURL(View view){
         GithubActivity.setRepository(context);
-        TabLayout tabs = findViewById(R.id.tabs);
-        tabs.getTabAt(0).select();
     }
     public void onRefreshLog(View view){
         ViewGroup container = findViewById(R.id.container);
@@ -708,8 +699,6 @@ public class DemoActivity extends AppCompatActivity {
         }
         else {
             GithubActivity.setRepository(context);
-            TabLayout tabs = findViewById(R.id.tabs);
-            tabs.getTabAt(0).select();
         }
     }
     @Override

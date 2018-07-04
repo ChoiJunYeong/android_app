@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -108,7 +109,6 @@ public class GalleryMinigameActivity extends AppCompatActivity {
                 setOnClickMove(i,j,imageView);
             }
         }
-
         shuffle();
         count=0;
     }
@@ -299,6 +299,6 @@ public class GalleryMinigameActivity extends AppCompatActivity {
     public Bitmap resize(Bitmap image,int width,int height ){
         float width_original = image.getWidth();
         float height_original = image.getHeight();
-        return Bitmap.createScaledBitmap(image,width,(int)(((float)width) * (width_original/height_original)),true);
+        return Bitmap.createScaledBitmap(image,width,(int)(((float)width) * (height_original/width_original)),true);
     }
 }

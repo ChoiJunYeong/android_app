@@ -29,7 +29,6 @@
         <activity android:name=".phonebook" />
         <activity android:name=".information"
             android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".GithubActivity" />
         <activity
             android:name=".picture_expansion"
             android:label="@string/title_activity_picture_expansion"

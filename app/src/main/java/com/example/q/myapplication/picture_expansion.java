@@ -78,7 +78,7 @@ public class picture_expansion extends AppCompatActivity {
     public Bitmap resize(Bitmap image,int width,int height ){
         float width_original = image.getWidth();
         float height_original = image.getHeight();
-        return Bitmap.createScaledBitmap(image,width,(int)(((float)width) * (width_original/height_original)),true);
+        return Bitmap.createScaledBitmap(image,width,(int)(((float)width) * (height_original/width_original)),true);
     }
 
 
