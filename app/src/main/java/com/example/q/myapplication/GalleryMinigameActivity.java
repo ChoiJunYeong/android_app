@@ -184,7 +184,7 @@ public class GalleryMinigameActivity extends AppCompatActivity {
         Random shuffle_random = new Random();
         int old_direction = -10;
         int shuffle_direction=5; //0=up,1=down,2=left,3=right
-        for(int i=0;i<2;i++) {
+        for(int i=0;i<17;i++) {
             do {
                 shuffle_direction = shuffle_random.nextInt(4); //0=up,1=down,2=left,3=right
             }
