@@ -175,6 +175,7 @@ public class DemoActivity extends AppCompatActivity {
                 switch (tab.getPosition()) {
                     case 0:
                         findViewById(R.id.context_root_layout).setVisibility(View.GONE);
+
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.GONE);
@@ -484,8 +485,8 @@ public class DemoActivity extends AppCompatActivity {
             img_path.subList(0,gallery_page*page_size).clear();
         else if(gallery_page==0){}
         else{
-            Toast.makeText(this,"Last page",Toast.LENGTH_SHORT).show();
-            gallery_page--;
+            Toast.makeText(this,"첫페이지로 돌아가려면 Tab",Toast.LENGTH_SHORT).show();
+            gallery_page=-1;
             return;
         }
 
