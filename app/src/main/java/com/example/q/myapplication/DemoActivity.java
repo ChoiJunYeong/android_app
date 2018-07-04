@@ -12,8 +12,10 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Debug;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
@@ -148,7 +150,7 @@ public class DemoActivity extends AppCompatActivity {
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.VISIBLE);
-                        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+                        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
                         fab.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
@@ -156,7 +158,7 @@ public class DemoActivity extends AppCompatActivity {
                                 setGalleryAdapter();
                             }
                         });
-                        findViewById(R.id.fab).setVisibility(View.VISIBLE);
+                        findViewById(R.id.fab).setVisibility(View.VISIBLE);*/
                         break;
                     case 2:
                         findViewById(R.id.refresh_btn).setVisibility(View.VISIBLE);
@@ -494,22 +496,29 @@ public class DemoActivity extends AppCompatActivity {
     public void setGalleryAdapter(){
         GridView gridView = findViewById(R.id.galleryView);
         ViewGroup root = findViewById(R.id.gallery_root_layout);
-        int page_size = 20;
         img_path = loadGallery();
-        if(img_path.size()>gallery_page*page_size)
-            img_path.subList(0,gallery_page*page_size).clear();
-        else if(gallery_page==0){}
-        else{
-            Toast.makeText(this,"첫페이지로 돌아가려면 Tab",Toast.LENGTH_SHORT).show();
-            gallery_page=-1;
-            return;
-        }
-
-        if(img_path.size()>page_size)
-            img_path.subList(page_size,img_path.size()).clear();
         //set adapter
         galleryAdapter = new GalleryAdapter(getApplicationContext(),img_path);
         gridView.setAdapter(galleryAdapter);
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(),picture_expansion.class);
+                intent.putExtra("image",view.getTag().toString());
+                startActivity(intent);
+            }
+        });
+        //set image onclick listener, show image int big size
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(getApplicationContext(),GalleryMinigameActivity.class);
+                intent.putExtra("image",view.getTag().toString());
+                startActivity(intent);
+                return true;
+            }
+        });
     }
     public class GalleryAdapter extends BaseAdapter {
         private Context context;
@@ -528,87 +537,45 @@ public class DemoActivity extends AppCompatActivity {
         public long getItemId(int position) {
             return position;
         }
-        public View getView(int position, View convertView, ViewGroup parent) {
-            try {
-                //set parameter of imageView
-                DisplayMetrics displayMetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                int widthPixels = displayMetrics.widthPixels;
-                int heightPixels = displayMetrics.heightPixels;
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            //set parameter of imageView
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int widthPixels = displayMetrics.widthPixels;
 
-                //read image from image path string
-                File f = new File((String) getItem(position));
-                Bitmap image = BitmapFactory.decodeStream(new FileInputStream(f));
-                //set image
-                ImageView imageView = new ImageView(getApplicationContext());
-                image =  Bitmap.createScaledBitmap(image,widthPixels/4,heightPixels/6,false);
-                imageView.setImageBitmap(image);
-                imageView.setTag((String) getItem(position));
-                imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, heightPixels/6));
+            //read image from image path string
+            //BitmapFactory.Options options = new BitmapFactory.Options();
+            //options.inSampleSize = 8;
+            //Bitmap image = BitmapFactory.decodeFile((String)getItem(position),options);
+            //image = ThumbnailUtils.extractThumbnail(image, 64, 64);
+                //    image =  Bitmap.createScaledBitmap(image,150,150,false);
+            //set image
+            final ImageView imageView = new ImageView(getApplicationContext());
+            //imageView.setImageBitmap(image);
+            imageView.setTag((String) getItem(position));
+            imageView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, widthPixels/4));
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    //read image from image path string
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 8;
+                    Bitmap image = BitmapFactory.decodeFile((String)imagePath.get(position),options);
+                    final Bitmap image2 = ThumbnailUtils.extractThumbnail(image, 64, 64);
 
-                //set image onclick listener, show image int big size
-                imageView.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View view) {
-                        /*
-                            this is function that show only one picture at big size
-                        */
-                        /*ImageView imageView = new ImageView(getApplicationContext());
-                        ViewGroup root = findViewById(R.id.gallery_root_layout);
-                        imageView.setImageDrawable(((ImageView)view).getDrawable());
-                        imageView.setBackgroundColor(0xFFFFFFFF);
-                        imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
-                        root.addView(imageView);
-                        setGalleryAdapter(false);
-                        imageView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                setGalleryAdapter(true);
-                            }
-                        });
-                        */
-                        Intent intent = new Intent(getApplicationContext(),GalleryMinigameActivity.class);
-                        intent.putExtra("image",view.getTag().toString());
-                        startActivity(intent);
-                        return true;
-                    }
-                });
-                imageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        /*
-                            this is function that show only one picture at big size
-                        */
-                        /*ImageView imageView = new ImageView(getApplicationContext());
-                        ViewGroup root = findViewById(R.id.gallery_root_layout);
-                        imageView.setImageDrawable(((ImageView)view).getDrawable());
-                        imageView.setBackgroundColor(0xFFFFFFFF);
-                        imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
-                        root.addView(imageView);
-                        setGalleryAdapter(false);
-                        imageView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                setGalleryAdapter(true);
-                            }
-                        });
-                        */
-                        Intent intent = new Intent(getApplicationContext(),picture_expansion.class);
-                        intent.putExtra("image",view.getTag().toString());
-                        startActivity(intent);
-
-                    }
-                });
-                return imageView;
-            }catch (FileNotFoundException e){
-                e.printStackTrace();
-                return null;
-            }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageBitmap(image2);
+                        }
+                    });
+                }
+            }).start();
+            return imageView;
         }
 
+
     }
-
-
     public void getGithubLog(final String url){
 
         final ArrayList<Integer> graph_points = new ArrayList<>();
