@@ -36,6 +36,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -77,6 +79,9 @@ public class DemoActivity extends AppCompatActivity {
     int gallery_page=0;
     ArrayList<String> img_path;
     Context context = this;
+
+
+    SimpleAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -320,12 +325,32 @@ public class DemoActivity extends AppCompatActivity {
         }// end while
         c.close();
         parsing_json();
-        SimpleAdapter adapter = new SimpleAdapter(getApplicationContext(),
+        adapter = new SimpleAdapter(getApplicationContext(),
                 dataList,
                 android.R.layout.simple_list_item_2,
                 new String[]{"name", "phone"},
                 new int[]{android.R.id.text1, android.R.id.text2});
         mListview.setAdapter(adapter);
+
+        EditText editText = findViewById(R.id.editTextFilter);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                ((SimpleAdapter)adapter).getFilter().filter(charSequence);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+
     }
 
 
