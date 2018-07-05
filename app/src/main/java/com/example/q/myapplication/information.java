@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -39,9 +40,9 @@ public class information extends AppCompatActivity {
         nameView.setText(name);
         phoneView.setText(phone);
 
-        Button btnDelete = (Button) findViewById(R.id.delete_info);
+        ImageButton btnDelete = (ImageButton) findViewById(R.id.delete_info);
         Button btnoutofway = (Button) findViewById(R.id.out_info);
-        Button btnChange = (Button) findViewById(R.id.change_info);
+        ImageButton btnChange = (ImageButton) findViewById(R.id.change_info);
         btnoutofway.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 Intent outIntent = new Intent(getApplicationContext(), phonebook.class);
@@ -112,6 +113,25 @@ public class information extends AppCompatActivity {
                             add2.show();
                         }
                         else {
+                            Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone));
+                            Cursor cur = getContentResolver().query(contactUri, null, null, null, null);
+                            try {
+                                if (cur.moveToFirst()) {
+                                    do {
+                                        if (cur.getString(cur.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)).equalsIgnoreCase(name)) {
+                                            String lookupKey = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                                            Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+                                            getContentResolver().delete(uri, null, null);
+                                        }
+
+                                    } while (cur.moveToNext());
+                                }
+                            } catch (Exception e) {
+                                System.out.println(e.getStackTrace());
+                            } finally {
+                                cur.close();
+                            }
+
                             final String value1 = name1.getText().toString();
                             final String value2 = phone1.getText().toString();
                             Thread thread2 = new Thread(){
@@ -170,25 +190,6 @@ public class information extends AppCompatActivity {
                             };
                             thread2.start();
                             try{thread2.join();}catch (InterruptedException e){}
-
-                            Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone));
-                            Cursor cur = getContentResolver().query(contactUri, null, null, null, null);
-                            try {
-                                if (cur.moveToFirst()) {
-                                    do {
-                                        if (cur.getString(cur.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)).equalsIgnoreCase(name)) {
-                                            String lookupKey = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
-                                            Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
-                                            getContentResolver().delete(uri, null, null);
-                                        }
-
-                                    } while (cur.moveToNext());
-                                }
-                            } catch (Exception e) {
-                                System.out.println(e.getStackTrace());
-                            } finally {
-                                cur.close();
-                            }
 
                             Intent outIntent = new Intent(getApplicationContext(), phonebook.class);
                             setResult(2, outIntent);

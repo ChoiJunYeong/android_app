@@ -107,6 +107,8 @@ public class DemoActivity extends AppCompatActivity {
         else
             recreate();
       //  startActivity(new Intent(this,GithubActivity.class));
+
+
     }
 
 
@@ -142,6 +144,7 @@ public class DemoActivity extends AppCompatActivity {
         findViewById(R.id.fab).setVisibility(View.GONE);
 
         ViewGroup item_selector = findViewById(R.id.container);
+
 
 
         TabLayout tabLayout = findViewById(R.id.tabs);
@@ -200,6 +203,8 @@ public class DemoActivity extends AppCompatActivity {
         View tab1 = getLayoutInflater().inflate(R.layout.activity_phonebook, null);
         item_selector.addView(tab1);
 
+
+
         mListview = (ListView) findViewById(R.id.listview);
         mListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -214,9 +219,13 @@ public class DemoActivity extends AppCompatActivity {
         findViewById(R.id.fab).setVisibility(View.GONE);
 
 
+
+
         View tab2 = getLayoutInflater().inflate(R.layout.activity_gallery, null);
         item_selector.addView(tab2);
         setGalleryAdapter();
+
+
 
 
     }
@@ -226,6 +235,8 @@ public class DemoActivity extends AppCompatActivity {
     ArrayList<Map<String, String>> dataList;
     ListView mListview;
     String Jsondata;
+
+
 
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
