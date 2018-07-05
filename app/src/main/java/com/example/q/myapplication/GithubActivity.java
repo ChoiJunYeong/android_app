@@ -116,7 +116,12 @@ public class GithubActivity  {
         //get difference
         if(old_key_set==null)
             return new_key_set;
-
+        for(String old_key : old_key_set){
+            if(new_key_set.contains(old_key))
+                continue;
+            editor.remove(old_key+" add");
+            editor.remove(old_key+" del");
+        }
         new_key_set.removeAll(old_key_set);
         return new_key_set;
     }

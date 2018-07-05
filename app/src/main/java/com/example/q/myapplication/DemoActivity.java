@@ -689,7 +689,6 @@ class MyAsync extends AsyncTask<String, Void, Void> {
             Set<String> key_set = new HashSet<>();
             for(Element key : list_of_key){
                 key_set.add(key.text());
-                Log.d("key name",key.text());
             }
             key_set = GithubActivity.saveLog(context,key_set);
 
@@ -711,7 +710,6 @@ class MyAsync extends AsyncTask<String, Void, Void> {
                 for(Element one_commit : all_commit){
                     String key = one_commit.getElementsByClass("sha btn btn-outline BtnGroup-item").first().text();
                     if(!key_set.contains(key)) {
-                        Log.d("what key?",key);
                         commit_data[0]+=log_preference.getInt(key+" add",0);
                         commit_data[1]+=log_preference.getInt(key+" del",0);
                         continue;
