@@ -66,8 +66,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -682,23 +684,46 @@ class MyAsync extends AsyncTask<String, Void, Void> {
                 days.add(date);
             }
 
+            //set key list
+            Elements list_of_key = github_doc.getElementsByClass("sha btn btn-outline BtnGroup-item");
+            Set<String> key_set = new HashSet<>();
+            for(Element key : list_of_key){
+                key_set.add(key.text());
+                Log.d("key name",key.text());
+            }
+            key_set = GithubActivity.saveLog(context,key_set);
+
+
             //get elements day-by-day
             Elements list_by_day = github_doc.getElementsByClass("commit-group table-list table-list-bordered");
 
+
+            SharedPreferences log_preference =  context.getSharedPreferences("git-logs",Context.MODE_PRIVATE);
+            SharedPreferences.Editor pref_editor = log_preference.edit();
 
             for(Element list_one_day : list_by_day){
                 String[] unit_data = new String[3];
                 int[] commit_data = {0,0};
                 //get elements commit-by-commit
                 Elements all_commit = list_one_day.getElementsByClass("commit commits-list-item table-list-item js-navigation-item js-details-container Details js-socket-channel js-updatable-content");
+
+
                 for(Element one_commit : all_commit){
+                    String key = one_commit.getElementsByClass("sha btn btn-outline BtnGroup-item").first().text();
+                    if(!key_set.contains(key)) {
+                        Log.d("what key?",key);
+                        commit_data[0]+=log_preference.getInt(key+" add",0);
+                        commit_data[1]+=log_preference.getInt(key+" del",0);
+                        continue;
+                    }
+
+
                     //get each commit history link, and connect
                     String commit_link = one_commit.getElementsByClass("message").first().attr("href");
-                    Document commit_doc = Jsoup.connect("https://github.com"+commit_link).get();
+                    Document commit_doc = Jsoup.connect("https://github.com" + commit_link).get();
 
                     //get commit history title bar, which contain the number of added and deleted line
                     String add_del_log = commit_doc.getElementsByClass("toc-diff-stats").first().toString();
-
 
                     //get add line number
                     ArrayList<Character> number = new ArrayList<>();
@@ -707,9 +732,7 @@ class MyAsync extends AsyncTask<String, Void, Void> {
                             number.add(0,add_del_log.charAt(i));
                         }
                         commit_data[0]+=Integer.parseInt(GithubActivity.getNumber(number));
-                    }
-                    else{
-                        //??
+                        pref_editor.putInt(key+" add",Integer.parseInt(GithubActivity.getNumber(number)));
                     }
                     //get delete line number
                     if(add_del_log.contains(" deletion")) {
@@ -718,13 +741,13 @@ class MyAsync extends AsyncTask<String, Void, Void> {
                             number.add(0, add_del_log.charAt(i));
                         }
                         commit_data[1]+=Integer.parseInt(GithubActivity.getNumber(number));
+                        pref_editor.putInt(key+" del",Integer.parseInt(GithubActivity.getNumber(number)));
                     }
-                    else{
-                        //??
-                    }
+                    pref_editor.apply();
                     if(data.size()>=GithubActivity.getHistoryNum())
                         break;
                 }
+
                 unit_data[0]="+"+commit_data[0];
                 unit_data[1]="-"+commit_data[1];
                 Integer[] day = days.get(0);

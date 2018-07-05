@@ -31,6 +31,8 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GithubActivity  {
     static int num_of_history = 5;
@@ -77,6 +79,11 @@ public class GithubActivity  {
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.putString("URL",url);
                         editor.apply();
+
+                        SharedPreferences log_preference =  context.getSharedPreferences("git-logs",Context.MODE_PRIVATE);
+                        SharedPreferences.Editor pref_editor = log_preference.edit();
+                        pref_editor.clear();
+                        pref_editor.apply();
                     }
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -97,6 +104,21 @@ public class GithubActivity  {
         return  Integer.toString(num);
     }
 
+    public static Set<String> saveLog(Context context,Set<String> new_key_set){
+        //get old key
+        SharedPreferences log =  context.getSharedPreferences("git-logs",Context.MODE_PRIVATE);
 
+        Set<String> old_key_set = log.getStringSet("git-keys",null);
+        //update
+        SharedPreferences.Editor editor = log.edit();
+        editor.putStringSet("git-keys",new_key_set);
+        editor.apply();
+        //get difference
+        if(old_key_set==null)
+            return new_key_set;
+
+        new_key_set.removeAll(old_key_set);
+        return new_key_set;
+    }
 
 }
