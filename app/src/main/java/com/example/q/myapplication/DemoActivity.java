@@ -146,7 +146,6 @@ public class DemoActivity extends AppCompatActivity {
 
         findViewById(R.id.refresh_btn).setVisibility(View.GONE);
         findViewById(R.id.reset_btn).setVisibility(View.GONE);
-        findViewById(R.id.fab).setVisibility(View.GONE);
 
         ViewGroup item_selector = findViewById(R.id.container);
 
@@ -162,15 +161,6 @@ public class DemoActivity extends AppCompatActivity {
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.VISIBLE);
-                        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-                        fab.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                gallery_page++;
-                                setGalleryAdapter();
-                            }
-                        });
-                        findViewById(R.id.fab).setVisibility(View.VISIBLE);*/
                         break;
                     case 2:
                         findViewById(R.id.refresh_btn).setVisibility(View.VISIBLE);
@@ -193,7 +183,6 @@ public class DemoActivity extends AppCompatActivity {
                         break;
                     case 1:
                         findViewById(R.id.gallery_root_layout).setVisibility(View.GONE);
-                        findViewById(R.id.fab).setVisibility(View.GONE);
                         break;
                     case 2:
                         ViewGroup container = findViewById(R.id.container);
@@ -221,7 +210,6 @@ public class DemoActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.fab).setVisibility(View.GONE);
 
 
 

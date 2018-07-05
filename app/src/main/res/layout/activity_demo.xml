@@ -48,28 +48,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:context=".PageActivity"/>
+
     <Button
         android:id="@+id/reset_btn"
+        style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="reset"
         android:layout_gravity="start|top"
         android:layout_marginTop="56dp"
-        android:onClick="onResetURL"/>
+        android:backgroundTint="#C51162"
+        android:onClick="onResetURL"
+        android:text="reset" />
 
     <Button
         android:id="@+id/refresh_btn"
+        style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="onRefreshLog"
         android:layout_gravity="end|top"
         android:layout_marginTop="56dp"
+        android:backgroundTint="#C51162"
+        android:onClick="onRefreshLog"
         android:text="refresh" />
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_media_play" />
 </android.support.design.widget.CoordinatorLayout>
