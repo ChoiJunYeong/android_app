@@ -796,9 +796,26 @@ class MyAsync extends AsyncTask<String, Void, Void> {
             GithubActivity.setHorizontalScrollView(listView,data,context);
             //그래프에 들어갈 점 배열
             GraphView graphview = (GraphView) context.findViewById(R.id.github_graph);
-            graphview.setPoints(graph_add_points,graph_del_points, 1, 0, 1000);
+            graphview.setPoints(graph_add_points,graph_del_points, 1, 0, findMax(graph_add_points,graph_del_points));
             graphview.drawForBeforeDrawView();
             graphview.invalidate();
         }
+    }
+    public int findMax(ArrayList<Integer> graph_add_points,ArrayList<Integer> graph_del_points){
+        int max = 0;
+        int count = 1;
+        for(int point_value : graph_add_points){
+            if(max<point_value)
+                max=point_value;
+        }
+
+        for(int point_value : graph_del_points){
+            if(max<point_value)
+                max=point_value;
+        }
+        while(max/count>=10){
+            count*=10;
+        }
+        return ((int)Math.ceil(max/((double)count)))*count;
     }
 }

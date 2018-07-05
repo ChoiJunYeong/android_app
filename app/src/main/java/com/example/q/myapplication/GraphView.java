@@ -71,7 +71,7 @@ public class GraphView extends View {
         //x축 점 사이의 거리
         float gapx = (float)getWidth() / 6;
         //y축 단위 사이의 거리
-        float gapy = (height - mPointSize) / mDivide;
+        float gapy = (float)((height - mPointSize) / (double)mDivide);
         int length = addPoints.length;
 
         drawAddGraph(length,gapx,gapy);
@@ -171,7 +171,6 @@ public class GraphView extends View {
             int length = addPointX.length;
             for (int i = 0; i < length; i++) {
                 canvas.drawCircle(addPointX[i], addPointY[i], mPointRadius, addPointPaint);
-                Log.d("draw points","success");
             }
         }
         //점을 그린다
